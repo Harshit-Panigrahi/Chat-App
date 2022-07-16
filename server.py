@@ -44,17 +44,16 @@ def clientthread(conn, nick):
       close()
 
 # Connection is the socket that wants to send the message
-
-def broadcast(msg, connection):
+def broadcast(msg, conn):
   for client in clients:
-    if client != connection:
+    if client != conn:
       try:
         client.send(msg.encode("utf-8"))
       except:
         remove(client)
 
 def remove(connection):
-  if connection in clients: 
+  if connection in clients:
     clients.remove(connection)
 
 def remove_nick(nick):
