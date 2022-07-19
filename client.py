@@ -72,26 +72,142 @@ class GUI:
     
   def goAhead(self, name):
     self.login.destroy()
-    self.name = name
     rcv = Thread(target = self.receive)
     rcv.start()
-    self.layout()
+    self.name = name
+    self.layout(name)
   
-  def layout(self):
+  def layout(self, name):
     self.Window.deiconify()
-  
+    self.Window.title("CHATROOM")
+    self.Window.resizable(width = False, height = False)
+    self.Window.configure(
+      width = 450, 
+      height = 550, 
+      bg = "#17202A"
+    )
+    
+    self.labelHead = Label(
+      self.Window,
+      bg = "#17202A",
+      fg = "#EAECEE",
+      text = self.name, 
+      font = "Helvetica 15 bold",
+      pady = 5
+    )
+    self.labelHead.place(relwidth = 1)
+    
+    self.line = Label(
+      self.Window, 
+      width = 430,
+      bg = "#ABB2B9"
+    )
+    self.line.place(
+      relwidth = 1,
+      relheight= 0.01,
+      rely = 0.06
+    )
+
+    self.textCons = Text(
+      self.Window, 
+      width = 20, 
+      height = 2,
+      bg = "#17202A",
+      fg = "#ABB2B9", 
+      font = "Helvetica 14",
+      padx = 5, 
+      pady = 5
+    )
+
+    self.textCons.place(
+      relheight = 0.7, 
+      relwidth= 0.9, 
+      rely = 0.1
+    )
+    
+    self.textCons.config(cursor="arrow")
+    scrollBar = Scrollbar(self.textCons)
+    scrollBar.place(relheight = 1, relx = 0.95)
+    scrollBar.config (
+      command = self.textCons.yview
+    )
+    
+    self.labelBottom = Label(
+      self.Window,
+      height = 80,
+      bg = "#17202A",
+      fg = "#ABB2B9"
+    )
+    
+    self.labelBottom.place(
+      relwidth=1,
+      rely=0.8
+    )
+    
+    self.entryMsg = Entry(
+      self.labelBottom,
+      bg = "#17202A",
+      fg = "#ABB2B9",
+      font = "Helvetica 13"
+    )
+    self.entryMsg.place(
+      relwidth = 0.75,
+      relheight = 0.05,
+      rely=0.01,
+      relx=0.01
+    )
+    self.entryMsg.focus()
+    
+    self.btnMsg = Button(
+      self.labelBottom,
+      text = "Send",
+      font = "Helvetica 10 bold",
+      width = 20,
+      bg = "#17202A",
+      fg = "#ABB2B9",
+      command = lambda: self.sendBtn(self.entryMsg.get())
+    )
+    self.btnMsg.place(
+      relwidth = 0.2,
+      relheight = 0.04,
+      relx = 0.78,
+      rely = 0.01
+    )
+
+  def sendBtn(self, msg):
+    self.textCons.config(state = DISABLED)
+    self.msg = msg
+    self.entryMsg.delete(0, END)
+    snd = Thread(target=self.write)
+    snd.start()
+
+  def showMsg(self, msg):
+    self.textCons.config(state = NORMAL)
+    self.textCons.insert(END, msg+"\n\n")
+    self.textCons.config(state = DISABLED)
+    self.textCons.see(END)
+    
   def receive(self):
     while True:
-      try:
-        message = client.recv(2048).decode('utf-8')
-        if message == 'NICKNAME':
-          client.send(self.name.encode('utf-8'))
-        else:
-          pass
-      except:
+      #try:
+      message = client.recv(2048).decode('utf-8')
+      if message == 'NICKNAME':
+        print(self.name)
+        client.send(self.name.encode('utf-8'))
+      else:
+        self.showMsg(message)
+      """ except:
         print("An error occurred!")
         client.close()
-        break
+        break """
+
+  def write(self):
+    self.textCons.config(state = DISABLED)
+    while True:
+      msg = (f"{self.name}: {self.msg}")
+      client.send(msg.encode("utf-8"))
+      self.showMsg(msg)
+      break
 
 g = GUI()
 

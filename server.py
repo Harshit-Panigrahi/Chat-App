@@ -41,7 +41,7 @@ def clientthread(conn, nick):
         remove(conn)
         remove_nick(nick)
     except KeyboardInterrupt:
-      close()
+      continue
 
 # Connection is the socket that wants to send the message
 def broadcast(msg, conn):
